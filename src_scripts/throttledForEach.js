@@ -18,7 +18,7 @@ function throttledForEach(arr, fn, delay=1500, context=null ) {
                 promise
                     .then(n=>{
                         i += 1;
-                        console.log('in throtteled resolve: ', n);
+                        //console.log('in throtteled resolve: ', n);
                         setTimeout(tick, delay);
                     })
                     .catch(e=>console.error(e));

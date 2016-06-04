@@ -2,6 +2,7 @@
 import request from './request.js';
 import throttledForEach from './throttledForEach.js';
 import cheerio from 'cheerio';
+import utils from './utils.js';
 
 const scraper = {
     setPageLimit(){
@@ -11,11 +12,13 @@ const scraper = {
         let limitIsSet = new Promise( (resolve, reject) => {
 
             if (needToGetFromPage){
+
+                let setLimit = maxPageNum => this.options.limit = maxPageNum;
+
                 this.getMaxNumOfPages()
-                    .then( maxPageNum => {
-                        this.options.limit = maxPageNum;
-                        resolve();
-                    });
+                    .then( setLimit )
+                    .then( () => resolve() )
+                    .catch( e => reject(e) );
             } else {
                 resolve();
             }
@@ -40,13 +43,69 @@ const scraper = {
                 console.log('max num is: ', maxPageNum);
                 resolve(maxPageNum);
             })
-            .catch(e => console.log('error from request', e));
+            .catch(e => reject(e));
         });
 
         return promise;
     },
     parseOfferListPages(){
-        console.log('in parse offer list pages: ', this.options);
+
+        let {startWith, limit} = this.options;
+        let pageNums = utils.range(startWith, limit);
+
+        throttledForEach(pageNums, this.getOfferListPage.bind(this))
+            .then(()=> console.warn('succeeded!!!'));
+
+        //console.log('in parse offer list pages: ', this.options);
+    },
+    getOfferListPage(pagenum, i, arr, promise){
+
+        let {baseUrl, pageUrlPart} = this.options;
+
+        let offerListPageUrl = `${baseUrl}${pageUrlPart}${pagenum}`;
+
+        console.log( 'offerListPageUrl', offerListPageUrl );
+
+        let scraper = this;
+
+        request(offerListPageUrl)
+            .then( html => {
+                let $ = cheerio.load(html);
+
+                console.log($('title').text());
+
+                let offerLinks = this.getOfferLinks($);
+            //console.log(offerLinks);
+                throttledForEach(offerLinks, this.getOfferPage.bind(scraper))
+                    .then(() => {
+                        console.log('_________offer was parsed');
+                        promise.resolve();
+                    });
+            })
+            .catch( e => console.log('From getOfferListPage: ', e) );
+
+    },
+    getOfferLinks($){
+        return $('.listadoH3 > a').map( (i, a) => $(a).attr('href') ).toArray();
+    },
+    getOfferPage(offerLinkPart, i, arr, promise){
+
+        let scraper = this;
+        let {baseUrl} = this.options;
+        let offerLink = `${baseUrl}${offerLinkPart}`;
+
+        request(offerLink)
+            .then( html => scraper.parseOffer(html, promise) )
+            .catch( e => console.log('From getOfferPage', e));
+    },
+    parseOffer(offerHtml, promise){
+
+        let $ = cheerio.load(offerHtml);
+
+        console.log( $('.pageH2').text() );
+
+        promise.resolve();
+
     },
     init(options = {}){
 
@@ -54,21 +113,22 @@ const scraper = {
             baseUrl: 'http://www.visual-home.es/',
             pageUrlPart: 'pisos-benidorm/index/index/page/',
             delay: 2000,
-            startWith: 0
+            startWith: 1
         };
 
         // set options
         this.options = Object.assign(defaults, options);
 
         this.setPageLimit()
-            .then( () => this.parseOfferListPages() );
+            .then( this.parseOfferListPages.bind(this) );
             //.then( this.parseOfferListPages );
     }
 };
 
-//var arr = [1, 2, 3, 4, 5];
-
-scraper.init();
+scraper.init({
+        limit: 2,
+        delay: 1000
+    });
 
 //throttledForEach(arr, log).then(()=> console.warn('succeeded!!!'));
 /*

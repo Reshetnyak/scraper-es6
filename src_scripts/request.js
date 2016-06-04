@@ -6,7 +6,10 @@ let request = (url) => {
     var promise = new Promise( (resolve, reject) => {
 
         http.get(url, handleResponse)
-            .on('error', (err) => reject(err));
+            .on('error', (err) => {
+                console.log('From request: ', err)
+                reject(err);
+            });
 
         function handleResponse(response){
 
