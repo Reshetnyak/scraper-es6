@@ -4,8 +4,6 @@ import throttledForEach from './throttledForEach.js';
 
 console.info(request);
 
-
-
 var arr = [1, 2, 3, 4, 5];
 
 throttledForEach(arr, log).then(()=> console.warn('succeeded!!!'));
@@ -19,7 +17,6 @@ function log(item, i, arr, promise) {
     throttledForEach(innerArr, logInner).then(
         () => { promise.resolve('outer finished'); }
     );
-
 }
 
 function logInner(item, i, arr, promise) {

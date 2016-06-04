@@ -11,7 +11,7 @@ function throttledForEach(arr, fn, delay=1500, context=null ) {
             } else {
                 var promise = new Promise(
                     (resolve,reject)=>{
-                        fn.apply(context, [arr[i], i, arr, {resolve, reject}])
+                        fn.apply(context, [arr[i], i, arr, {resolve, reject}]);
                     }
                 );
 
@@ -24,8 +24,7 @@ function throttledForEach(arr, fn, delay=1500, context=null ) {
                     .catch(e=>console.error(e));
             }
         }
-    }
-    );
+    });
     return finished;
 }
 
