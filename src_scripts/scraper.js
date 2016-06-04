@@ -1,4 +1,8 @@
 /*jshint esnext: true*/
+import request from './request.js';
+
+console.info(request);
+
 function throtteledForEach(arr, fn, delay=1500, context=null ) {
     var i = 0;
     var finished = new Promise((resolve,reject)=>{
