@@ -37,16 +37,31 @@ const scraper = {
         let promise = new Promise( (resolve, reject) => {
 
             request(url).then( html => {
-                let $ = cheerio.load(html);
 
-                let maxPageNum = $('.pagination li > a').last().parent().prev().find('a').text();
-                console.log('max num is: ', maxPageNum);
+                let maxPageNum = getMaxPageNum( html );
+
                 resolve(maxPageNum);
             })
             .catch(e => reject(e));
         });
 
         return promise;
+
+        function getMaxPageNum(html){
+
+            let $ = cheerio.load(html);
+            let maxPageNum = 0;
+
+            try{
+                maxPageNum = $('.pagination li > a').last().parent().prev().find('a').text();
+            } catch(e){
+                console.log('From getMaxPageNum: ', e);
+            }
+
+            console.log('max page num is: ', maxPageNum);
+
+            return maxPageNum;
+        }
     },
     parseOfferListPages(){
 
@@ -55,6 +70,8 @@ const scraper = {
 
         throttledForEach(pageNums, this.getOfferListPage.bind(this))
             .then(()=> console.warn('succeeded!!!'));
+        //pageNums.forEach( this.getOfferListPage );
+
 
         //console.log('in parse offer list pages: ', this.options);
     },
@@ -70,11 +87,8 @@ const scraper = {
 
         request(offerListPageUrl)
             .then( html => {
-                let $ = cheerio.load(html);
 
-                console.log($('title').text());
-
-                let offerLinks = this.getOfferLinks($);
+                let offerLinks = this.getOfferLinks(html);
             //console.log(offerLinks);
                 throttledForEach(offerLinks, this.getOfferPage.bind(scraper))
                     .then(() => {
@@ -85,8 +99,20 @@ const scraper = {
             .catch( e => console.log('From getOfferListPage: ', e) );
 
     },
-    getOfferLinks($){
-        return $('.listadoH3 > a').map( (i, a) => $(a).attr('href') ).toArray();
+    getOfferLinks(html){
+
+        let $ = cheerio.load(html);
+        let offerLinks = [];
+
+        console.log($('title').text());
+
+        try{
+            offerLinks = $('.listadoH3 > a').map( (i, a) => $(a).attr('href') ).toArray();
+        } catch(e) {
+            console.log('From getOfferLinks: ', e);
+        }
+
+        return offerLinks;
     },
     getOfferPage(offerLinkPart, i, arr, promise){
 
@@ -119,34 +145,25 @@ const scraper = {
         // set options
         this.options = Object.assign(defaults, options);
 
+        /*
+        1) set page limit ( take form options || take from page)
+        2) until limit repeat:
+        3)   get page with offers
+        4)      get offer links
+        5)      for each offer link:
+        6)          get offer
+        7)          parse offer
+        8)          save data
+        */
+
         this.setPageLimit()
             .then( this.parseOfferListPages.bind(this) );
-            //.then( this.parseOfferListPages );
+
+
     }
 };
 
 scraper.init({
         limit: 2,
-        delay: 1000
+        delay: 500
     });
-
-//throttledForEach(arr, log).then(()=> console.warn('succeeded!!!'));
-/*
-function log(item, i, arr, promise) {
-
-    console.log('outer started :', item, i, arr);
-
-    var innerArr = Array.apply(null , Array(item)).map((n,i)=>i + 1);
-
-    throttledForEach(innerArr, logInner).then(
-        () => { promise.resolve('outer finished'); }
-    );
-}
-
-function logInner(item, i, arr, promise) {
-
-    console.info('inner started: ', item, i, arr);
-
-    promise.resolve('inner finished');
-}
-*/
