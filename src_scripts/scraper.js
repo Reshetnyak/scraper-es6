@@ -88,7 +88,7 @@ const scraper = {
         request(offerListPageUrl)
             .then( html => {
 
-                let offerLinks = this.getOfferLinks(html);
+                let offerLinks = getOfferLinks(html);
             //console.log(offerLinks);
                 throttledForEach(offerLinks, this.getOfferPage.bind(scraper))
                     .then(() => {
@@ -98,21 +98,22 @@ const scraper = {
             })
             .catch( e => console.log('From getOfferListPage: ', e) );
 
-    },
-    getOfferLinks(html){
+        function getOfferLinks(html){
 
-        let $ = cheerio.load(html);
-        let offerLinks = [];
+            let $ = cheerio.load(html);
+            let offerLinks = [];
 
-        console.log($('title').text());
+            console.log($('title').text());
 
-        try{
-            offerLinks = $('.listadoH3 > a').map( (i, a) => $(a).attr('href') ).toArray();
-        } catch(e) {
-            console.log('From getOfferLinks: ', e);
+            try{
+                offerLinks = $('.listadoH3 > a').map( (i, a) => $(a).attr('href') ).toArray();
+            } catch(e) {
+                console.log('From getOfferLinks: ', e);
+            }
+
+            return offerLinks;
         }
 
-        return offerLinks;
     },
     getOfferPage(offerLinkPart, i, arr, promise){
 
