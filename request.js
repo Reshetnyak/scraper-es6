@@ -1,5 +1,5 @@
 /*jshint esnext: true*/
-import http from 'http';
+const http = require('http');
 
 const request = url => {
 
@@ -23,4 +23,4 @@ const request = url => {
     return promise;
 };
 
-export default request;
+module.exports = request;

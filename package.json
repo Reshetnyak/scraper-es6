@@ -4,8 +4,7 @@
   "description": "Scraping properties data from real estate web sites",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel src_scripts -w -d compiled -s"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "scrapers"
@@ -13,8 +12,6 @@
   "author": "Denis Reshetniak",
   "license": "MIT",
   "devDependencies": {
-    "babel-cli": "^6.9.0",
-    "babel-preset-es2015": "^6.9.0",
     "cheerio": "^0.20.0"
   }
 }

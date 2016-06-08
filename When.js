@@ -6,14 +6,13 @@ class When extends Promise{
     }
 
     static delay(ms){
-        return When.resolve().delay(ms);
+        return this.resolve().delay(ms);
     }
 
     static allSettled(promises){
-
         // Wrap each promise from array with promise which resolves in both cases, either resolved of rejected
         const wrap = promise => {
-            return new When( (resolve, reject) => {
+            return new this( (resolve, reject) => {
                 return promise
                         .then( result => resolve( result ) )
                         .catch( reason => resolve( reason ) );
@@ -21,7 +20,7 @@ class When extends Promise{
         };
 
         // Provide array of promises which can only be resolved
-        return When.all( promises.map( wrap ) );
+        return this.all( promises.map( wrap ) );
     }
 
     static makeDelayedSequense(arr, fn, delay=(Math.random()*1000), context=null){
@@ -30,7 +29,7 @@ class When extends Promise{
 
            return sequence.delay(delay).then( fn.bind(context, el) );
 
-        }, When.resolve());
+        }, this.resolve());
     }
 
     static makeSequence(arr, fn, context=null){
@@ -39,7 +38,7 @@ class When extends Promise{
 
            return sequence.then( fn.bind(context, el) );
 
-        }, When.resolve());
+        }, this.resolve());
     }
 
     delay(ms){
