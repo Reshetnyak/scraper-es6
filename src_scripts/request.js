@@ -1,9 +1,9 @@
 /*jshint esnext: true*/
 import http from 'http';
 
-let request = url => {
+const request = url => {
 
-    let promise = new Promise( (resolve, reject) => {
+    const promise = new Promise( (resolve, reject) => {
 
         http.get(url, handleResponse)
             .on('error', (err) => {

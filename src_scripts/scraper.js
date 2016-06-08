@@ -65,21 +65,27 @@ const scraper = {
     },
     parseOfferListPages(){
 
-        let {startWith, limit} = this.options;
-        let pageNums = utils.range(startWith, limit);
+        let getListsUrls = () => {
 
-        throttledForEach(pageNums, this.getOfferListPage.bind(this))
+            let {startWith, limit} = this.options;
+            let pageNums = utils.range(startWith, limit);
+
+            let {baseUrl, pageUrlPart} = this.options;
+            // path to offer list page without number;
+            let path = `${baseUrl}${pageUrlPart}`;
+
+            let offerListUrls = pageNums.map( pageNum => `${path}${pageNum}` );
+
+            return offerListUrls;
+        };
+
+        let offerListUrls = getListsUrls();
+
+        throttledForEach(offerListUrls, this.getOfferListPage.bind(this))
             .then(()=> console.warn('succeeded!!!'));
-        //pageNums.forEach( this.getOfferListPage );
 
-
-        //console.log('in parse offer list pages: ', this.options);
     },
-    getOfferListPage(pagenum, i, arr, promise){
-
-        let {baseUrl, pageUrlPart} = this.options;
-
-        let offerListPageUrl = `${baseUrl}${pageUrlPart}${pagenum}`;
+    getOfferListPage(offerListPageUrl, i, arr, promise){
 
         console.log( 'offerListPageUrl', offerListPageUrl );
 
@@ -160,11 +166,10 @@ const scraper = {
         this.setPageLimit()
             .then( this.parseOfferListPages.bind(this) );
 
-
     }
 };
 
 scraper.init({
         limit: 2,
-        delay: 500
+        delay: 1000
     });
