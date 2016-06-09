@@ -5,8 +5,12 @@ class When extends Promise{
         super( executor );
     }
 
-    static delay(ms){
+    static delay(ms=(Math.random()*1000)){
         return this.resolve().delay(ms);
+    }
+
+    static resolveDelayed(val, ms=(Math.random()*1000)){
+        return When.resolve(val).delay(ms);
     }
 
     // Wrap promise which will be resolved in both cases, either resolve of reject of called promise
@@ -49,7 +53,29 @@ class When extends Promise{
         }, this.resolve());
     }
 
-    delay(ms){
+    static async(makeGenerator){
+
+        return (...args) => {
+
+            const generator = makeGenerator.apply(this, args);
+
+            const handle = result => { // { done: [Boolean], value: [Object] }
+
+                if (result.done) {
+                    return result.value;
+                }
+
+                return result.value.then(
+                    res => handle(generator.next(res)),
+                    err => handle(generator.next(err))
+                )
+            };
+
+            return handle(generator.next());
+        }
+    }
+
+    delay(ms=(Math.random()*1000)){
         // Save original promise
         const promiseToDelay = this;
 
