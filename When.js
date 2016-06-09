@@ -9,25 +9,33 @@ class When extends Promise{
         return this.resolve().delay(ms);
     }
 
-    static allSettled(promises){
-        // Wrap each promise from array with promise which resolves in both cases, either resolved of rejected
-        const wrap = promise => {
-            return new this( (resolve, reject) => {
-                return promise
-                        .then( result => resolve( result ) )
-                        .catch( reason => resolve( reason ) );
-            });
-        };
-
-        // Provide array of promises which can only be resolved
-        return this.all( promises.map( wrap ) );
+    // Wrap promise which will be resolved in both cases, either resolve of reject of called promise
+    static resolveInBothCases(promise ){
+        return new this( (resolve, reject) => {
+            return promise
+                .then( result => resolve(
+                    { value: result, resolved: true }
+                ))
+                .catch( reason => resolve(
+                    { reason, rejected: true }
+                ));
+        });
     }
 
-    static makeDelayedSequense(arr, fn, delay=(Math.random()*1000), context=null){
+    static allSettled( promises ){
+        // Wrap promise which will be resolved in both cases, either resolve of reject of called promise
+        const wrappedPromises = promises.map(
+            promise => this.resolveInBothCases( promise )
+        );
+
+        return this.all( wrappedPromises );
+    }
+
+    static makeDelayedSequense(arr, fn, delayMs=(Math.random()*1000), context=null){
 
         return arr.reduce( (sequence, el) => {
 
-           return sequence.delay(delay).then( fn.bind(context, el) );
+           return sequence.delay( delayMs ).then( fn.bind(context, el) );
 
         }, this.resolve());
     }
