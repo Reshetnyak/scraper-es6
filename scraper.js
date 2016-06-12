@@ -20,7 +20,34 @@ class Scraper{
     }
 
     run(){
-        this.setPageLimit().then( this.parseOfferListPages.bind(this) );
+
+        const scenario = function*(){
+            //console.log(this);
+            yield this.setPageLimit();
+            //this.parseOfferListPages();//.bind(scraper);
+            const listPageUrls = this.getListPageUrls();
+            console.log('aga', listPageUrls);
+
+
+            for(var listPageUrl of listPageUrls){
+                var listPageHtml = yield this.getListPage(listPageUrl);
+                console.info('listPage has gotten');
+                var links = getLinks(listPageHtml);
+//
+//                for(var link of links){
+//                    var propPageHtml = yield getPropHtml(link);
+//                    var data = parseData( propPageHtml );
+//                    yield saveData( data );
+//                    console.info('data was saved for ' + link );
+//                }
+            }
+        }.bind(this);
+
+        const asyncScenario = When.async( scenario );
+
+        asyncScenario()
+            .then(result => console.log('job\'s done!', result))
+            .catch( reason => console.log('There was a problem', resaon));
     }
     // If there was no limit provided by class options it would be taken from page
     // Limit represents number of pages (with the list of offers) for parsing
@@ -28,8 +55,7 @@ class Scraper{
 
         const needToGetFromPage = this.options.hasOwnProperty('limit') === false;
 
-        // TODO: remove redundant variable
-        const limitIsSet = new When( (resolve, reject) => {
+        return new When( (resolve, reject) => {
 
             if (needToGetFromPage){
 
@@ -43,22 +69,19 @@ class Scraper{
                 resolve();
             }
         });
-
-        return limitIsSet;
     }
     // get home page and parse last page number
     getMaxNumOfPages(){
 
-        const {baseUrl, pageUrlPart, startWith} = this.options;
+        const {baseUrl, pageUrlPart, startWith, delay} = this.options;
 
         const url = `${baseUrl}${pageUrlPart}${startWith}`;
 
         console.log( 'home page url is: ', url );
 
-        //TODO: remove redundant variable
-        const promise = new When( (resolve, reject) => {
+        return new When( (resolve, reject) => {
 
-            request(url).then( html => {
+            request(url, delay).then( html => {
 
                 let maxPageNum = getMaxPageNum( html );
 
@@ -66,8 +89,6 @@ class Scraper{
             })
             .catch(e => reject(e));
         });
-
-        return promise;
 
         function getMaxPageNum(html){
 
@@ -85,10 +106,25 @@ class Scraper{
             return maxPageNum;
         }
     }
+    getListPageUrls(){
+        const {baseUrl, pageUrlPart, startWith, limit} = this.options;
+
+        const base = `${baseUrl}${pageUrlPart}`;
+
+        return utils.range(startWith, limit).map( pageNum => base + pageNum );
+    }
+    getListPage(listPageUrl){
+        console.log(this.options.delay);
+        return request(listPageUrl, this.options.delay)
+    }
+    parseOfferListPages(){
+        console.log('parse', this);
+
+    }
 }
 
-const scraper = new Scraper({ limit: 2, delay: 1000 });
-
+const scraper = new Scraper({ limit: 2, delay: 2000 });
+//const scraper = new Scraper({ delay: 1500 });
 scraper.run();
 
 /* ---- new scraper with sequenses ------ */
@@ -159,7 +195,7 @@ function getListPage(listPageUrl, delay){
         .catch( e => console.error( 'from listpage', e ) )
 }
 
-parse(listPagesUrls).then( v=>console.log('jobsdone', console.timeEnd('listPagesUrls')) );
+//parse(listPagesUrls).then( v=>console.log('jobsdone', console.timeEnd('listPagesUrls')) );
 
 /*
 

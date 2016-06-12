@@ -83,4 +83,4 @@ class When extends Promise{
     }
 }
 
-export default When;
+module.exports = When;

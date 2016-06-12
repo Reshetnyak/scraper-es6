@@ -1,26 +1,26 @@
 /*jshint esnext: true*/
 const http = require('http');
+const When = require('./When.js');
 
-const request = url => {
+const request = (url, delay) => new When( (resolve, reject) => {
 
-    const promise = new Promise( (resolve, reject) => {
-
+    setTimeout(()=>{
         http.get(url, handleResponse)
-            .on('error', (err) => {
-                console.log('From request: ', err);
-                reject(err);
-            });
+        .on('error', handleError);
+    }, delay);
 
-        function handleResponse(response){
+    function handleResponse(response){
 
-            let data = '';
+        let data = '';
 
-            response.on('data', chunk => data += chunk);
-            response.on('end', () => resolve(data) );
-        }
-    });
+        response.on('data', chunk => data += chunk);
+        response.on('end', () => resolve(data) );
+    }
 
-    return promise;
-};
+    function handleError(err){
+        console.log('From request: ', err);
+        reject(err);
+    }
+});
 
 module.exports = request;
