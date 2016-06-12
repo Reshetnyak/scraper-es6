@@ -5,27 +5,41 @@ class When extends Promise{
         super( executor );
     }
 
-    static delay(ms){
+    static delay(ms=(Math.random()*1000)){
         return this.resolve().delay(ms);
     }
 
-    static allSettled(promises){
-        // Wrap each promise from array with promise which resolves in both cases, either resolved of rejected
-        const wrap = promise => new this( (resolve, reject) => {
-                return promise
-                        .then( result => resolve( result ) )
-                        .catch( reason => resolve( reason ) );
-            });
-
-        // Provide array of promises which can only be resolved
-        return this.all( promises.map( wrap ) );
+    static resolveDelayed(val, ms=(Math.random()*1000)){
+        return When.resolve(val).delay(ms);
     }
 
-    static makeDelayedSequense(arr, fn, delay=(Math.random()*1000), context=null){
+    // Wrap promise which will be resolved in both cases, either resolve of reject of called promise
+    static resolveInBothCases(promise ){
+        return new this( (resolve, reject) => {
+            return promise
+                .then( result => resolve(
+                    { value: result, resolved: true }
+                ))
+                .catch( reason => resolve(
+                    { reason, rejected: true }
+                ));
+        });
+    }
+
+    static allSettled( promises ){
+        // Wrap promise which will be resolved in both cases, either resolve of reject of called promise
+        const wrappedPromises = promises.map(
+            promise => this.resolveInBothCases( promise )
+        );
+
+        return this.all( wrappedPromises );
+    }
+
+    static makeDelayedSequense(arr, fn, delayMs=(Math.random()*1000), context=null){
 
         return arr.reduce( (sequence, el) => {
 
-           return sequence.delay(delay).then( fn.bind(context, el) );
+           return sequence.delay( delayMs ).then( fn.bind(context, el) );
 
         }, this.resolve());
     }
@@ -40,6 +54,7 @@ class When extends Promise{
     }
 
     static async(makeGenerator){
+
         return (...args) => {
             const generator = makeGenerator.apply(this, args);
 
@@ -62,7 +77,8 @@ class When extends Promise{
         }
     }
 
-    delay(ms){
+    delay(ms=(Math.random()*1000)){
+
         // Save original promise
         const promiseToDelay = this;
 
