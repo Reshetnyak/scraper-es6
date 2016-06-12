@@ -11,13 +11,11 @@ class When extends Promise{
 
     static allSettled(promises){
         // Wrap each promise from array with promise which resolves in both cases, either resolved of rejected
-        const wrap = promise => {
-            return new this( (resolve, reject) => {
+        const wrap = promise => new this( (resolve, reject) => {
                 return promise
                         .then( result => resolve( result ) )
                         .catch( reason => resolve( reason ) );
             });
-        };
 
         // Provide array of promises which can only be resolved
         return this.all( promises.map( wrap ) );
@@ -39,6 +37,29 @@ class When extends Promise{
            return sequence.then( fn.bind(context, el) );
 
         }, this.resolve());
+    }
+
+    static async(makeGenerator){
+        return (...args) => {
+            const generator = makeGenerator.apply(this, args);
+
+            const handle = result => {
+
+                if (result.done){
+                    return Promise.resolve( result.value )
+                }
+
+                return Promise.resolve( result.value )
+                    .then( res => handle( generator.next(res) ) )
+                    .catch( reason => handle( generator.throw(reason) ) );
+            }
+
+            try {
+                return handle( generator.next() );
+            } catch (reason) {
+                return Promise.reject(reason);
+            }
+        }
     }
 
     delay(ms){
