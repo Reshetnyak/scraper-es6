@@ -1,8 +1,8 @@
 /*jshint esnext: true*/
-const request = require('./request.js');
+const request = require('./request');
 const cheerio = require('cheerio');
-const utils = require('./utils.js');
-const When = require('./when.js');
+const utils   = require('./utils');
+const When    = require('./when');
 
 class Scraper{
 
@@ -138,7 +138,8 @@ class Scraper{
     }
     saveData(propData){
         console.log('savaData', propData);
-        return When.resolve(true);
+        this.options.db.saveData(propData);
+        //return When.resolve(true);
     }
     * parseProperties(propertylinks){
 
@@ -148,7 +149,6 @@ class Scraper{
             yield this.saveData( data );
             console.info('data was saved for ' + propertylink );
         }
-
     }
 }
 module.exports = Scraper;

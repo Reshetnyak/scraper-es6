@@ -1,6 +1,6 @@
 /*jshint esnext: true*/
 const http = require('http');
-const When = require('./when.js');
+const When = require('./when');
 
 const request = (url, delay) => new When( (resolve, reject) => {
 

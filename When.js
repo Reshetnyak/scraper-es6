@@ -67,7 +67,7 @@ class When extends Promise{
                 return Promise.resolve( result.value )
                     .then( res => handle( generator.next(res) ) )
                     .catch( reason => handle( generator.throw(reason) ) );
-            }
+            };
 
             try {
                 return handle( generator.next() );
