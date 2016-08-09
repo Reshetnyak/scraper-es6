@@ -3,9 +3,6 @@ const request = require('./request.js');
 const cheerio = require('cheerio');
 const utils = require('./utils.js');
 const When = require('./when.js');
-const Parser = require('./parser.js');
-
-console.log(Parser);
 
 class Scraper{
 
@@ -154,9 +151,4 @@ class Scraper{
 
     }
 }
-
-const parser  = new Parser();
-const scraper = new Scraper({ limit: 2, delay: 300, parser: parser });
-//const scraper = new Scraper({ delay: 1500 });
-
-scraper.run();
+module.exports = Scraper;
