@@ -53,10 +53,10 @@ class When extends Promise{
         }, this.resolve());
     }
 
-    static async(makeGenerator){
+    static async(makeGenerator, context = this){
 
         return (...args) => {
-            const generator = makeGenerator.apply(this, args);
+            const generator = makeGenerator.apply(context, args);
 
             const handle = result => {
 

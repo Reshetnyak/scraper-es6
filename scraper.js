@@ -21,28 +21,29 @@ class Scraper{
 
     run(){
 
-        const scenario = function*(){
-
-            yield this.setPageLimit();
-
-            const listPageUrls = this.getListPageUrls();
-
-            for(let listPageUrl of listPageUrls){
-
-                let listPageHtml = yield this.getListPage(listPageUrl);
-                console.info('listPage has gotten');
-                let propertylinks = this.getPropertyLinks(listPageHtml);
-
-                yield* this.parseProperties(propertylinks);
-            }
-        }.bind(this);
-
-        const asyncScenario = When.async( scenario );
+        const asyncScenario = When.async( this.scenario, this );
 
         asyncScenario()
             .then(result => console.log('job\'s done!', result))
             .catch( reason => console.log('There was a problem', reason));
     }
+    // Scraper sequence
+    * scenario() {
+
+        yield this.setPageLimit();
+
+        const listPageUrls = this.getListPageUrls();
+
+        for(let listPageUrl of listPageUrls){
+
+            let listPageHtml = yield this.getListPage(listPageUrl);
+            console.info('listPage has gotten');
+            let propertylinks = this.getPropertyLinks(listPageHtml);
+
+            yield* this.parseProperties(propertylinks);
+        }
+    }
+
     // If there was no limit provided by class options it would be taken from page
     // Limit represents number of pages (with the list of offers) for parsing
     setPageLimit(){
@@ -57,8 +58,8 @@ class Scraper{
 
                 this.getMaxNumOfPages()
                     .then( setLimit )
-                    .then( () => resolve() )
-                    .catch( e => reject(e) );
+                    .then( resolve )
+                    .catch( reject );
             } else {
                 resolve();
             }
@@ -81,7 +82,7 @@ class Scraper{
 
                 resolve(maxPageNum);
             })
-            .catch(e => reject(e));
+            .catch( reject );
         });
 
         function getMaxPageNum(html){
